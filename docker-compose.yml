@@ -27,9 +27,9 @@ services:
       GEOIP2INFLUX_LOG_LEVEL: "info"
       GEOIP2INFLUX_LOG_PATH: "/config/geoip2influx/geoip2influx.log"
     volumes:
-      - /etc/dokploy/traefik/log:/config/log/nginx:ro # <-- carpeta a carpeta
-      - /opt/geoip:/config/geoip:ro
-      - ./logs:/config/geoip2influx
+      - /etc/dokploy/traefik/log/access.log:/logs/traefik-access.json:ro
+      - /opt/geoip/GeoLite2-City.mmdb:/geoip/GeoLite2-City.mmdb:ro
+      - ./telegraf.conf:/etc/telegraf/telegraf.conf:ro
 
     networks:
       - monitoring
