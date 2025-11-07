@@ -1,0 +1,22 @@
+version: "3.8"
+services:
+  geoip2influx:
+    image: ghcr.io/gilbn/geoip2influx:latest
+    container_name: geoip2influx
+    restart: unless-stopped
+    env_file: .env
+    volumes:
+      # Log real de NGINX dentro del contenedor
+      - ./nginx/logs/access.log:/config/nginx/access.log:ro
+      # Base de datos GeoLite2
+      - ./geoip:/config/geoip
+      # Carpeta para log interno de geoip2influx (opcional)
+      - ./logs:/config/geoip2influx
+    # Si tu InfluxDB está en otra red docker, conéctalo a esa red
+    networks:
+      - monitoring
+
+networks:
+  monitoring:
+    external: true
+    name: monitoring
