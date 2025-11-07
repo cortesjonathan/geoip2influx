@@ -1,18 +1,37 @@
 version: "3.8"
+
 services:
   geoip2influx:
     image: ghcr.io/gilbn/geoip2influx:latest
     container_name: geoip2influx
     restart: unless-stopped
-    env_file: .env
+    environment:
+      # ---- InfluxDB v2 ----
+      USE_INFLUXDB_V2: "true"
+      INFLUXDB_V2_URL: "https://influxdb.deceyec.mx"
+      INFLUXDB_V2_ORG: "primary"
+      INFLUXDB_V2_BUCKET: "grafana"
+      INFLUXDB_V2_TOKEN: "${INFLUXDB_V2_TOKEN}" # <-- como Secret en Dokploy
+
+      # ---- Tipo de log y ruta (Traefik) ----
+      LOG_TYPE: "traefik"
+      LOG_PATHS: "/var/log/traefik/access.log"
+
+      # ---- GeoIP DB ----
+      GEOIP_DB_PATH: "/config/geoip/GeoLite2-City.mmdb"
+
+      # ---- (Opcional) ajustes
+      TIMEZONE: "America/Mexico_City"
+      # GEO_MEASUREMENT: "geoip2influx"
+      # LOG_MEASUREMENT: "traefik_access_logs"
+      # GEOIP2INFLUX_LOG_LEVEL: "info"
+      # GEOIP2INFLUX_LOG_PATH: "/config/geoip2influx/geoip2influx.log"
+
     volumes:
-      # Log real de NGINX dentro del contenedor
-      - ./nginx/logs/access.log:/config/nginx/access.log:ro
-      # Base de datos GeoLite2
-      - ./geoip:/config/geoip
-      # Carpeta para log interno de geoip2influx (opcional)
-      - ./logs:/config/geoip2influx
-    # Si tu InfluxDB está en otra red docker, conéctalo a esa red
+      - /var/log/traefik:/var/log/traefik:ro # <-- leer access.log real de Traefik
+      - /opt/geoip:/config/geoip:ro # <-- contiene GeoLite2-City.mmdb
+      - geoip2db-config:/config/geoip2db # estado interno
+
     networks:
       - monitoring
 
@@ -20,3 +39,6 @@ networks:
   monitoring:
     external: true
     name: monitoring
+
+volumes:
+  geoip2db-config:
