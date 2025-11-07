@@ -6,31 +6,31 @@ services:
     container_name: geoip2influx
     restart: unless-stopped
     environment:
-      # ---- InfluxDB v2 ----
+      # InfluxDB v2
       USE_INFLUXDB_V2: "true"
       INFLUXDB_V2_URL: "https://influxdb.deceyec.mx"
       INFLUXDB_V2_ORG: "primary"
       INFLUXDB_V2_BUCKET: "grafana"
-      INFLUXDB_V2_TOKEN: "${INFLUXDB_V2_TOKEN}" # <-- como Secret en Dokploy
+      INFLUXDB_V2_TOKEN: "${INFLUXDB_V2_TOKEN}" # colócalo en Dokploy (env)
 
-      # ---- Tipo de log y ruta (Traefik) ----
-      LOG_TYPE: "traefik"
-      LOG_PATHS: "/var/log/traefik/access.log"
+      # MaxMind (se descarga automáticamente si pasas tus credenciales)
+      MAXMINDDB_USER_ID: "${MAXMINDDB_USER_ID}" # en Dokploy
+      MAXMINDDB_LICENSE_KEY: "${MAXMINDDB_LICENSE_KEY}" # en Dokploy
 
-      # ---- GeoIP DB ----
+      # Rutas internas esperadas por la app
+      NGINX_LOG_PATH: "/config/log/nginx/access.log"
       GEOIP_DB_PATH: "/config/geoip/GeoLite2-City.mmdb"
 
-      # ---- (Opcional) ajustes
-      TIMEZONE: "America/Mexico_City"
-      # GEO_MEASUREMENT: "geoip2influx"
-      # LOG_MEASUREMENT: "traefik_access_logs"
-      # GEOIP2INFLUX_LOG_LEVEL: "info"
-      # GEOIP2INFLUX_LOG_PATH: "/config/geoip2influx/geoip2influx.log"
+      # Opcionales
+      GEO_MEASUREMENT: "geoip2influx"
+      LOG_MEASUREMENT: "nginx_access_logs"
+      GEOIP2INFLUX_LOG_LEVEL: "info"
+      GEOIP2INFLUX_LOG_PATH: "/config/geoip2influx/geoip2influx.log"
 
     volumes:
-      - /var/log/traefik:/var/log/traefik:ro # <-- leer access.log real de Traefik
-      - /opt/geoip:/config/geoip:ro # <-- contiene GeoLite2-City.mmdb
-      - geoip2db-config:/config/geoip2db # estado interno
+      - /etc/dokploy/traefik/log/access.log:/config/log/nginx/access.log:ro # <-- nuevo path
+      - ./geoip:/config/geoip
+      - ./logs:/config/geoip2influx
 
     networks:
       - monitoring
@@ -39,6 +39,3 @@ networks:
   monitoring:
     external: true
     name: monitoring
-
-volumes:
-  geoip2db-config:
